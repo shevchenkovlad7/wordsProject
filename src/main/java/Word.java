@@ -1,8 +1,4 @@
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -12,56 +8,104 @@ import java.util.*;
  */
 public class Word {
     public static void main(String[] args) throws IOException {
-        String fileDirectory = "/home/vshevchenko/words.txt";
-        Path path = Paths.get(fileDirectory);
-        Scanner scanner = new Scanner(path);
-        List<String> allLines = Files.readAllLines(path, StandardCharsets.UTF_8);
-        List<String> all = allLines;
 
-        TreeSet<String> concatLine = new TreeSet();
-        Map<Integer, List<String>> map = new TreeMap<>();
-        Integer count = new Integer(0);
+            List<String> allLines = new ArrayList<>();
+            try {
+                loadWords(allLines);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            System.out.println("words is loaded");
 
-        for (int j=0; j<allLines.size(); j++){
-            String line = allLines.get(j);
-            for(int i=0; i< all.size(); i++){
-                if(allLines.get(i).equals(allLines.get(j))){
+            Map<Integer, Set<Obj>>map = new LinkedHashMap<>();
+            int firstLength = 0;
+            int secondLength = 0;
+
+            long start = System.nanoTime();
+            for (int i = allLines.size() - 1; i > 0; i--) {
+                Set<String> concatWords = new TreeSet<>();
+                String line = allLines.get(i);
+                if (line.length() < secondLength) {
                     continue;
                 }
-                if((line.contains(all.get(i)))){
-                    line = line.replaceAll(all.get(i),"");
-                    if(line.isEmpty()){
-                        Integer key = allLines.get(j).length();
-                        String value = allLines.get(j);
-                        List<String> valueList;
-                        if ((map.get(key)!=null) && (!map.get(key).isEmpty())) {
-                            valueList = map.get(key);
-                            valueList.add(value);
-                            map.put(key, valueList);
-                            count++;
-                        }else {
-                            valueList = new ArrayList<>();
-                            valueList.add(value);
-                            map.put(key, valueList);
-                            count++;
-                        }
+
+                Set<String> mas = asSet(line.split(allLines.get(i - 1)));
+                if (!mas.isEmpty()) {
+                    mas.add(allLines.get(i - 1));
+                }
+
+                Iterator<String> iterator = mas.iterator();
+
+                while (iterator.hasNext()) {
+                    String afterSplit = iterator.next();
+                    if (afterSplit.equals("s")) {
                         break;
                     }
+                    if (allLines.contains(afterSplit) && !afterSplit.equals(line)) {
+                        iterator.remove();
+                        concatWords.add(afterSplit);
+                        continue;
+                    }
+                    int count;
+                    for (int j = allLines.size() -1; j >= 0 && j != i && j != i - 1; j--) {
+                        String word = allLines.get(j);
+                        String[] mas1 = afterSplit.split(word);
+                        if (mas1.length > 1) {
+                            mas.remove(afterSplit);
+                            mas.addAll(asSet(mas1));
+                            iterator = mas.iterator();
+                            concatWords.add(word);
+                            break;
+                        }
+                    }
+
+                }
+                if (mas.isEmpty()) {
+                    int length = line.length();
+                    if (firstLength < length) {
+                        firstLength = length;
+                    } else if (firstLength != length && secondLength < length) {
+                        secondLength = length;
+                    }
+                    Set<Obj> set = map.get(length);
+                    if (set == null) {
+                        set = new HashSet<>();
+                        map.put(length, set);
+                    }
+                    set.add(new Obj(line, concatWords));
+
+                    System.out.println("add —> " + line);
                 }
             }
+            long end = System.nanoTime();
+            System.out.println("Time = " + (end - start));
+
+            Set<Obj> first = map.get(firstLength);
+            System.out.println("FirstLength = " + firstLength + " —> " + Arrays.toString(first.toArray(new Obj[]{})));
+            Set<Obj> second = map.get(secondLength);
+            System.out.println("SecondLength = " + secondLength + " —> " + Arrays.toString(second.toArray(new Obj[]{})));
         }
-        System.out.println(map.keySet());
-        TreeSet<Integer> set = new TreeSet<>(map.keySet());
-        Integer maxKey =  set.last();
-        Integer secondMaxKey = set.lower(maxKey);
 
-        System.out.println("The longest word : " + map.get(maxKey).toString());
-        System.out.println("2nd longest word : "+ map.get(secondMaxKey).toString());
+        private static void loadWords(List<String> allLines) throws FileNotFoundException {
+            File file = new File("/home/vshevchenko/words.txt");
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                String word = scanner.nextLine();
+                if (!word.isEmpty())
+                    allLines.add(word);
+            }
+        }
 
-        System.out.println(count);
-
-
-    }
+        private static Set<String> asSet(String[] mas) {
+            Set<String> list = new TreeSet<>();
+            for (int i = 0; i < mas.length; i++) {
+                String s = mas[i];
+                if (!s.isEmpty()) {
+                    list.add(mas[i]);
+                }
+            }
+            return list;
+        }
 }
 
 
