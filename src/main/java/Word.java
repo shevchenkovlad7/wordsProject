@@ -84,6 +84,8 @@ public class Word {
             System.out.println("FirstLength = " + firstLength + " —> " + Arrays.toString(first.toArray(new Obj[]{})));
             Set<Obj> second = map.get(secondLength);
             System.out.println("SecondLength = " + secondLength + " —> " + Arrays.toString(second.toArray(new Obj[]{})));
+            System.out.println("Total count = "+ first.size()+second.size());
+
         }
 
         private static void loadWords(List<String> allLines) throws FileNotFoundException {
