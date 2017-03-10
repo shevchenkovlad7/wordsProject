@@ -1,5 +1,5 @@
+package object;
 import java.util.Set;
-
 /**
  * @author Vlad Shevchenko
  * @version 1.0
@@ -14,6 +14,9 @@ public class Obj {
     public Obj(String value, Set<String> concatWords) {
         this.value = value;
         this.concatWords = concatWords;
+    }
+
+    public Obj(String word) {
     }
 
     public String getValue() {
